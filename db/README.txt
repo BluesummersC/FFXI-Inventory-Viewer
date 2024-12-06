@@ -1,4 +1,4 @@
-load_ffxiah.py, and the xml file are here for archiving! The remote server only needs the .sql file we create.
+load_ffxiah.py is here only for archiving! The remote server only needs the .sql file we create.
 
 To save on remote processing usage, it is easier to create and populate the table locally and the export/import it.
 
