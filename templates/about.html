@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>About FFXIINV</title>
+  </head>
+  <body>
+	{% extends "template.html" %}
+    {% block content %}
+
+    <div>
+    In order to get all of your inventory items in a list, you must have the FindAll mod in Windower.
+    </div>
+    <div>
+    In the Windower command prompt, type:
+    </div>
+    <div><em>
+    findall –export=filename</em>
+    </div>
+    <div>This will create a lua file in the FFXI addons folder located at [game install path]\Final Fantasy XI\addons\findAll\data\filename.lua.
+    </div> 
+    </div>
+    <div>
+    On the home page, upload that file and wait a few seconds for the table to populate!
+    </div>
+	  
+	{% endblock %}
+  </body>
+</html>
