@@ -98,13 +98,6 @@ CREATE TABLE ffxiah (
 
 
 mydb = mysql.connector.connect(
-    # host="bluesummers.mysql.pythonanywhere-services.com",
-    host="localhost",
-    user="bluesummers",
-    password="Cloud1Repacking",
-    # database="bluesummers$ffxiinv",
-    database="ffxiinv",
-    allow_local_infile=True
 )
 
 cur = mydb.cursor()
