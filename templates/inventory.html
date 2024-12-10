@@ -2,341 +2,504 @@
 {% block head %}
 {{ super() }}
 <!-- This lets you append items to the <head> tag from template.html, so this is where your script tags and custom style sheets should go -->
-<script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<!-- <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script> -->
 <!--script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script-->
 
+
 	<script type="text/javascript">
-			$(document).ready( function () {
-			
-				var invDataTable = $('#invTable').DataTable( {
-					ajax:{
-						url:"/get_json_data",
-						dataType:"json",
-						dataSrc:"data",
-						contentType:"application/json"
-						},
-					scrollX:true,
-					columns:[
-						{data: "char"},				//0
-						{data: "storage"},			//1
-						{data: "quantity"},			//2
-						{data: "id",
-							render: function(data, type, row, meta) {
-								if(type == 'display'){
-									data = '<a href=\"http://ffxiah.com/item/' + data + '">' + data + '</a>';
-								}
-								return data;
-							}
-						},							//3
-						{data: "en"},				//4
-						{data: "ja",},				//5
-						{data: "enl"},				//6
-						{data: "jal"},				//7
-						{data: "category"},			//8
-						{data: "flags"},			//9
-						{data: "stack"},			//10
-						{data: "level"},			//11
-						{data: "item_level"},		//12
-						{data: "superior_level"},	//13
-						{data: "damage"},			//14
-						{data: "delay"},			//15
-						{data: "skill"},			//16
-						{data: "targets"},			//17
-						{data: "type"},				//18
-						{data: "cast_time"},		//19
-						{data: "jobs"},				//20
-						{data: "races"},			//21
-						{data: "slots"},			//22
-						{data: "cast_delay"},		//23
-						{data: "recast_delay"},		//24
-						{data: "max_charges"},		//25
-						{data: "shield_size"},		//26
-						{data: "job_text"}			//27
-					],
-					columnDefs:[
-					{targets: [0], visible: false, searchable: false},
-					{targets: [5], visible: false, searchable: false},
-					{targets: [6], visible: false, searchable: false},
-					{targets: [7], visible: false, searchable: false},
-					{targets: [9], visible: false, searchable: false},
-					{targets: [17], visible: false, searchable: false},
-					{targets: [18], visible: false, searchable: false},
-					//{targets: [20], visible: false, searchable: true},
-					{targets: [21], visible: false, searchable: true},
-					{targets: [22], visible: false, searchable: true},
-					{targets: [27], visible: false, searchable: true}
-					]
+		var logAll = true;
+		var tableData = [];
+
+		const isEmpty = (str) => (!str?.length);
+
+		$(document).ready( function () {
+
+		// Setup the datatable
+		var invDataTable = $('#invTable').DataTable( {
+			data: tableData,
+			deferLoading:0,
+			scrollX:true,
+			columns:[
+				{title: "Char"},			//0
+				{title: "Bag"},				//1
+				{title: "Qty"},				//2
+				{title: "Id",
+					render: function(data, type, row, meta) {
+						if(type == 'display'){
+							data = '<a href=\"http://ffxiah.com/item/' + data + '">' + data + '</a>';
+						}
+						return data;
+					}
+				},							//3
+				{title: "Item",
+					render: function(data, type, row, meta) {
+						if(type == 'display'){
+							// console.log(row[3])
+							data = '<a href=\"http://ffxiah.com/item/' + row[3] + '">' + data + '</a>';
+						}
+						return data;
+					}},						//4
+				{title: "Ja",},				//5
+				{title: "Description"},		//6
+				{title: "Jal"},				//7
+				{title: "Category"},		//8
+				{title: "Flags"},			//9
+				{title: "Stack"},			//10
+				{title: "Level"},			//11
+				{title: "iLvl"},			//12
+				{title: "SuLvl"},			//13
+				{title: "Damage"},			//14
+				{title: "Delay"},			//15
+				{title: "Skill"},			//16
+				{title: "Targets"},			//17
+				{title: "Type"},			//18
+				{title: "Cast Time"},		//19
+				{title: "Jobs"},			//20
+				{title: "Races"},			//21
+				{title: "Slots"},			//22
+				{title: "Cast Delay"},		//23
+				{title: "Recast Delay"},	//24
+				{title: "Charges"},			//25
+				{title: "Shield"},			//26
+				{title: "JobText"}			//27
+			],
+			columnDefs:[
+				{targets: [5, 6, 7, 8, 9, 10, 16, 17, 18, 20], visible: false, searchable: false},
+				{targets: [0, 3, 21, 22], visible: false, searchable: true},
+				// {targets: [27], visible: false, searchable: true}
+			]
+		});
+
+
+		// Get args if passed in url
+		const urlName = {{urlName|default("")|tojson}};
+		const urlPasskey = {{urlPasskey|default("")|tojson}};
+
+		// Read file and upload with name
+		const loaded = (e) => {
+			const fr = e.target;
+			var contents = fr.result;
+
+			let name = document.getElementById('up-name').value;
+			let passkey = document.getElementById('up-passkey').value;
+			var body = 	{
+							file_data: contents,
+							name: name,
+							passkey: passkey
+						}
+			// console.log("typeof body = ", JSON.stringify(body));
+			if (!isEmpty(name)){
+				$.post(
+					"/upload_file",
+					body,
+					function(payload){
+						if (logAll){console.log(payload);};
+						let statusLbl = document.getElementById('upload-status');
+						if ("error" in payload){
+							statusLbl.innerHTML = "Upload Failed";
+							statusLbl.style.color = "red";
+						} else {
+							statusLbl.innerHTML = "Passkey is: " + payload['passkey'];
+							statusLbl.style.color = "green";
+						}
+					});
+				}
+			}
+
+		const errorHandler = (e) => {
+			console.log(e.target.error.name);
+		}
+
+		const processFile = (file) => {
+			const fr = new FileReader();
+
+			fr.readAsText(file);
+			fr.addEventListener('loadend', loaded);
+			fr.addEventListener('error', errorHandler);
+
+		}
+
+		$('#submit-upload').click(function(e){
+			e.preventDefault();
+			const file = document.getElementById('file-input').files[0];
+				if (file) {
+				processFile(file);
+				}
+		});
+
+		// document.getElementById('file-input').addEventListener('change', (e) => {
+		// 	const file = document.getElementById('file-input').files[0];
+		// 	if (file) {
+		// 		processFile(file);
+		// 	}
+		// });
+
+		// Download Existing
+		const requestExisting = (name, passkey) => {
+
+			$.post("/request_existing",
+				{
+					name: name,
+					passkey: passkey
+				},
+				function(payload){
+					if (logAll){console.log(payload);};
+					let statusLbl = document.getElementById('download-status');
+					let expireLbl = document.getElementById('expire-time');
+					if ("error" in payload){
+						statusLbl.innerHTML = "Download Failed";
+						statusLbl.style.color = "red";
+					} else {
+						invDataTable.clear();
+						invDataTable.rows.add(payload['data']);
+						invDataTable.draw();
+						statusLbl.innerHTML = "Download Successful";
+						statusLbl.style.color = "green";
+						expireLbl.innerHTML = payload['expires'];
+					}
 				});
-			
-	// --- Filtering for Bags ---
-			var filterBagArray = ["^inventory$", "^satchel$", "^storage$", "^locker$", "^safe$", "^safe2$", "^sack$","^case$", "^wardrobe$", "^wardrobe2$", "^wardrobe3$", "^wardrobe4$"];
-			var filterBagStr = "";
-			$("#inventoryBtn").on('click', function (){	checkBagPress("inventory",0, this); });
-			$("#satchelBtn").on('click', function (){ checkBagPress("satchel",1, this); });
-			$("#storageBtn").on('click', function (){ checkBagPress("storage",2, this); });
-			$("#lockerBtn").on('click', function (){checkBagPress("locker",3, this); });
-			$("#safe1Btn").on('click', function (){	checkBagPress("safe",4, this);	});
-			$("#safe2Btn").on('click', function (){	checkBagPress("safe2",5, this); });
-			$("#sackBtn").on('click', function (){ checkBagPress("sack",6, this); });
-			$("#caseBtn").on('click', function (){ checkBagPress("case",7, this); });
-			$("#wardrobe1Btn").on('click', function (){	checkBagPress("wardrobe",8, this);	});
-			$("#wardrobe2Btn").on('click', function (){	checkBagPress("wardrobe2",9, this); });
-			$("#wardrobe3Btn").on('click', function (){	checkBagPress("wardrobe3",10, this); });
-			$("#wardrobe4Btn").on('click', function (){ checkBagPress("wardrobe4",11, this); });
-			
-			function checkBagPress(filter, index, caller){
-				if (filterBagArray[index] == "^0$"){
-					filterBagArray[index] = "^"+filter+"$";
-					filterBagStr = filterBagArray.join("|");
-					caller.style.backgroundColor = "#007BFF";
-				} else {
-					filterBagArray[index] = "^0$";
-					filterBagStr = filterBagArray.join("|");
-					caller.style.backgroundColor = "gray";
-				}
-				//console.log(filterBagStr);
-				invDataTable.columns(1).search(filterBagStr, true, false, false).draw();
+
+		}
+
+		$('#submit-request').click(function(e){
+			e.preventDefault();
+			const name = document.getElementById('uname').value;
+			const passkey = document.getElementById('passkey').value;
+			if (!isEmpty(name) && !isEmpty(passkey)) {
+				requestExisting(name, passkey);
 			}
-	// --- End Bag Filtering ---
-		
-		
-	// --- Filtering for Race/Gender ---
-		var filterRaceArray = [1, 1, 1, 1, 1, 1, 1, 1]
+		});
+
+		if (urlName!=="" && urlPasskey!==""){
+			console.log('aint empty');
+			requestExisting(urlName, urlPasskey);
+			}
+
+	// --- Input Events ---
+		$(function() {
+			$('#up-name').on('keypress', function(e) {
+				if (e.which == 32){
+					// console.log('Space Detected');
+					return false;
+				}
+			});
+		});
+
+		$(function() {
+			$('#uname').on('keypress', function(e) {
+				if (e.which == 32){
+					// console.log('Space Detected');
+					return false;
+				}
+			});
+		});
+	// --- END ---
+
+	// --- Filtering values ---
+		var bJobInclusive = true;
+		var filterJobDict = {"WAR":{'show': true}, "MNK":{'show': true}, "WHM":{'show': true}, "BLM":{'show': true},
+							 "RDM":{'show': true}, "THF":{'show': true}, "PLD":{'show': true}, "DRK":{'show': true},
+							 "BST":{'show': true}, "BRD":{'show': true}, "RNG":{'show': true}, "SAM":{'show': true},
+							 "NIN":{'show': true}, "DRG":{'show': true}, "SMN":{'show': true}, "BLU":{'show': true},
+							 "COR":{'show': true}, "PUP":{'show': true}, "DNC":{'show': true}, "SCH":{'show': true},
+							 "GEO":{'show': true}, "RUN":{'show': true}};
+		var jobIntCol = 20;
+		var jobStrCol = 27;
+		// Assign click event to equipment job buttons 
+		//   Works because the button names are the the dict key names+"Btn"
+		elements = document.getElementsByClassName('job-btn');
+		for(var i=0; i < elements.length; i++) {
+			let buttonId = elements[i].id.toString();
+			let name = buttonId.substring(0, buttonId.length - 3)
+			elements[i].addEventListener('click', function (){strSearch(name, filterJobDict, jobStrCol, this)});
+		}
+		$("#selJob").on('click', function (){ toggleBtns('all', filterJobDict, jobStrCol, 'job-btn'); });
+		$("#deselJob").on('click', function (){ toggleBtns('none', filterJobDict, jobStrCol, 'job-btn'); });
+
+
+		var filterRaceDict = {"HumeM": {"show":true, "value":2}, "HumeF":  {"show":true, "value":4 },
+							  "ElvM":  {"show":true, "value":8}, "ElvF":   {"show":true, "value":16},
+							  "TaruM": {"show":true, "value":32}, "TaruF": {"show":true, "value":64},
+							  "Mi":    {"show":true, "value":128}, "Gk":   {"show":true, "value":256}}
 		var filterRaceVal = 510;
-		$("#HmaleBtn").on('click', function (){	checkRacePress(2, 0, this); });
-		$("#HfemaleBtn").on('click', function (){ checkRacePress(4, 1, this); });
-		$("#EmaleBtn").on('click', function (){ checkRacePress(8, 2, this); });
-		$("#EfemaleBtn").on('click', function (){ checkRacePress(16, 3, this); });
-		$("#TmaleBtn").on('click', function (){ checkRacePress(32, 4, this); });
-		$("#TfemaleBtn").on('click', function (){ checkRacePress(64, 5, this); });
-		$("#MithraBtn").on('click', function (){ checkRacePress(128, 6, this); });
-		$("#GalkaBtn").on('click', function (){ checkRacePress(256, 7, this); });
-		
-		function checkRacePress(value, i, caller){
-				if (filterRaceArray[i] == 1){
-					filterRaceArray[i] = 0;
-					filterRaceVal = filterRaceVal - value;
-					caller.style.backgroundColor = "gray";
-				} else {
-					filterRaceArray[i] = 1;
-					filterRaceVal = filterRaceVal + value;
-					console.log("SET ME GRAY DAMMIT");
-					caller.style.backgroundColor = "#007BFF";
-				}
-				console.log(filterRaceArray);
-				console.log("%d", filterRaceVal);
-				invDataTable.columns(21).search("^"+filterRaceVal+"$", true, false, false).draw();
-			}
-		
-	// --- End Race/Gender Filtering ---
-		
-	// --- Filtering for Slots ---
-		var filterSlotArray = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+		var raceIntCol = 21;
+		// Assign click event to equipment race buttons
+		//   Works because the button names are the the dict key names+"Btn"
+		elements = document.getElementsByClassName('race-btn');
+		for(var i=0; i < elements.length; i++) {
+			let buttonId = elements[i].id.toString();
+			let name = buttonId.substring(0, buttonId.length - 3)
+			elements[i].addEventListener('click', function (){tableSearch(name, filterRaceDict, raceIntCol, this)});
+		}
+		$("#selRace").on('click', function (){ toggleBtns('all', filterRaceDict, raceIntCol, 'race-btn'); });
+		$("#deselRace").on('click', function (){ toggleBtns('none', filterRaceDict, raceIntCol, 'race-btn'); });
+
+
+		// The dict keys must match the keys from the exported lua, and the buttons as key+"Btn"
+		var filterBagDict = {"inventory":{'show': true}, "satchel":{'show': true},
+							 "storage":{'show': true}, "locker":{'show': true},
+							 "safe":{'show': true}, "safe2":{'show': true},
+							 "sack":{'show': true}, "case":{'show': true},
+							 "slip":{'show': true}, "keyitems":{'show': true},
+							 "wardrobe":{'show': true}, "wardrobe2":{'show': true},
+							 "wardrobe3":{'show': true}, "wardrobe4":{'show': true},
+							 "wardrobe5":{'show': true}, "wardrobe6":{'show': true},
+							 "wardrobe7":{'show': true}, "wardrobe8":{'show': true},
+							 "recycle":{'show': true}, "temporary":{'show': true}
+							};
+		var filterBagStr = "";
+		var bagStrCol = 1;
+		// Assign click event to equipment inv buttons
+		elements = document.getElementsByClassName('inv-btn');
+		for(var i=0; i < elements.length; i++) {
+			let buttonId = elements[i].id.toString();
+			let name = buttonId.substring(0, buttonId.length - 3)
+			elements[i].addEventListener('click', function (){strSearch(name, filterBagDict, bagStrCol, this)});
+		}
+		$("#selBags").on('click', function (){ toggleBtns('all', filterBagDict, bagStrCol, 'inv-btn'); });
+		$("#deselBags").on('click', function (){ toggleBtns('none', filterBagDict, bagStrCol, 'inv-btn'); });
+
+
+		var filterSlotDict = {'Hand1':  {'show': true, 'value': 1},     'Hand2': {'show': true, 'value': 2},
+							  'Ranged': {'show': true, 'value': 4},     'Ammo':  {'show': true, 'value': 8},
+							  'Head':   {'show': true, 'value': 16},    'Body':  {'show': true, 'value': 32},
+							  'Hands':  {'show': true, 'value': 64},    'Legs':  {'show': true, 'value': 128},
+							  'Feet':   {'show': true, 'value': 256},   'Neck':  {'show': true, 'value': 512},
+							  'Belt':   {'show': true, 'value': 1024},  'Ears':  {'show': true, 'value': 6144},
+							  'Ring':   {'show': true, 'value': 24576}, 'Back':  {'show': true, 'value': 32768}}
 		var filterSlotVal = 65535;
-		$("#hand1Btn").on('click', function (){ checkSlotPress(1, 0, this); });
-		$("#hand2Btn").on('click', function (){ checkSlotPress(2, 1, this); });
-		$("#rangedBtn").on('click', function (){ checkSlotPress(4, 2, this); });
-		$("#ammoBtn").on('click', function (){ checkSlotPress(8, 3, this); });
-		$("#headBtn").on('click', function (){ checkSlotPress(16, 4, this); });
-		$("#bodyBtn").on('click', function (){ checkSlotPress(32, 5, this); });
-		$("#handsBtn").on('click', function (){ checkSlotPress(64, 6, this); });
-		$("#legsBtn").on('click', function (){ checkSlotPress(128, 7, this); });
-		$("#feetBtn").on('click', function (){ checkSlotPress(256, 8, this); });
-		$("#neckBtn").on('click', function (){ checkSlotPress(512, 9, this); });
-		$("#beltBtn").on('click', function (){ checkSlotPress(1024, 10, this); });
-		$("#ear1Btn").on('click', function (){ checkSlotPress(2048, 11, this); });
-		$("#ear2Btn").on('click', function (){ checkSlotPress(4096, 12, this); });
-		$("#ring1Btn").on('click', function (){ checkSlotPress(8192, 13, this); });
-		$("#ring2Btn").on('click', function (){ checkSlotPress(16384, 14, this); });
-		$("#backBtn").on('click', function (){ checkSlotPress(32768, 15, this); });
-		
-		function checkSlotPress(filter, index, caller){
-				if (filterSlotArray[index] == 0){
-					filterSlotArray[index] = 1;
-					filterSlotVal = filterSlotVal + filter;
-					caller.style.backgroundColor = "#007BFF";
-				} else {
-					filterSlotArray[index] = 0;
-					filterSlotVal = filterSlotVal - filter;
-					caller.style.backgroundColor = "gray";
-				}
-				if(filterSlotVal == 65535){
-					invDataTable.columns(22).search("", true, false, false).draw();
-				} else {
-					console.log("%d", filterSlotVal);
-					invDataTable.columns(22).search("^" + filterSlotVal + "$", true, false, false).draw();
-				}
-			}
-		
-	// --- End Slots Filtering ---
-		
-	// --- Filtering for Jobs ---
-		var bInclusive;
-		var filterJobArrayStr = ["WAR", "MNK", "WHM", "BLM", "RDM", "THF", "PLD", "DRK", "BST", "BRD", "RNG", "SAM", "NIN", "DRG", "SMN", "BLU", "COR", "PUP", "DNC", "SCH", "GEO", "RUN"]
-		var filterJobArrayInt = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-		var filterJobAll = ["WAR", "MNK", "WHM", "BLM", "RDM", "THF", "PLD", "DRK", "BST", "BRD", "RNG", "SAM", "NIN", "DRG", "SMN", "BLU", "COR", "PUP", "DNC", "SCH", "GEO", "RUN"]
-		var filterJobStr;
-		var elements = document.getElementsByClassName('job-btn');
-		var logAll = false;
-		
+		var slotIntCol = 22;
+		// Assign click event to equipment slot buttons
+		//   Works because the button names are the the dict key names+"Btn"
+		elements = document.getElementsByClassName('equip-btn');
+		for(var i=0; i < elements.length; i++) {
+			let buttonId = elements[i].id.toString();
+			let name = buttonId.substring(0, buttonId.length - 3)
+			elements[i].addEventListener('click', function (){tableSearch(name, filterSlotDict, slotIntCol, this)});
+		}
+		$("#selSlots").on('click', function (){ toggleBtns('all', filterSlotDict, slotIntCol, 'equip-btn'); });
+		$("#deselSlots").on('click', function (){ toggleBtns('none', filterSlotDict, slotIntCol, 'equip-btn'); });
+
+
+
 		// Get init state and adjust accordingly
-		if($('#checkExBox').is(':checked')){
-			bInclusive = true;
-			if (logAll == true){console.log('NOT CHECKED');};
-			// Set all buttons to Blue and show table
-			for(var i=0; i < elements.length; i++) { 
-				elements[i].style.backgroundColor = "007BFF";
-			}
-			invDataTable.columns(20).search('').draw();			
+		$('#checkJobExBox').bootstrapToggle('on')
+		if($('#checkJobExBox').is(':checked')){
+			bJobInclusive = true;
+			$('#checkJobExBox').bootstrapToggle('on');
+			if (logAll){console.log('init:checkJobExBox CHECKED');};
 		}else {
-			bInclusive = false;
-			if (logAll == true){console.log('CHECKED');};
-			// Set all buttons to Grey and clear table
-			for(var i=0; i < elements.length; i++) { 
-				elements[i].style.backgroundColor = "gray";
-			}
-			invDataTable.columns(20).search('^0$', true, false, false).draw();
+			bJobInclusive = false;
+			$('#checkJobExBox').bootstrapToggle('on');
+			if (logAll){console.log('init:checkJobExBox NOT CHECKED');};
 			
 		}
-		
-		// Handle toggle change
-		$('#checkExBox').on('change', function() {
-			if (logAll == true){console.log('CLICKED');};
-			if($('#checkExBox').is(':checked')){
-				bInclusive = true;
-				if (logAll == true){console.log('bInclusive is now = ', bInclusive);};
-				// Set all buttons to Blue and show table
-				for(var i=0; i < elements.length; i++) { 
-					elements[i].style.backgroundColor = "#007BFF";
+
+
+	// --- Filtering methods ---
+		function inclString(dict, column){
+			// OR the name strings together
+			let tempArray = Array();
+			let ord = 0;
+			for ( const [key, value] of Object.entries(dict)){
+				if(dict[key]['show']){
+					if('term' in dict[key]){
+						if(dict[key]['term'] !== ""){
+							tempArray.push(dict[key]['term'])
+						}else{
+							tempArray.push(key);
+						}
+					}else{
+						tempArray.push(key);
+					}
+					ord += 1
 				}
-				invDataTable.columns(20).search('').draw();
-			}else {	
-				bInclusive = false; 
-				if (logAll == true){console.log('bInclusive is now = ', bInclusive);};
-				// Set all buttons to Grey and clear table
-				for(var i=0; i < elements.length; i++) { 
-					elements[i].style.backgroundColor = "gray";
+			}
+
+			var searchVal = null;
+			if (ord >= 1) {
+				searchVal = tempArray.join("|");
+			}
+
+			if (logAll){console.log('inclString: searchVal ', searchVal, column);};
+			invDataTable.columns(column).search(searchVal, boundary=true, exact=true, regex=false).draw();
+		}
+
+		function exRegex(dict, column){
+			// Use Regex for inclusive and exclusive searching
+			let tempArray = Array()
+			for ( const [key, value] of Object.entries(dict)){
+					if (value['show']){
+						tempArray.push("(?=.*" + key + ")");
+					}else{
+						tempArray.push("(?!.*" + key + ")");
+					}
 				}
-				invDataTable.columns(27).search('', true, false, false).draw();
-				invDataTable.columns(20).search('^0$', true, false, false).draw();
+			let regex_str = "^" + tempArray.join("") + ".*$";
+
+			invDataTable.columns(column).search(regex_str, boundary=true, exact=false, regex=true).draw();
+		}
+
+		// Handle In/Ex toggle change
+		$('#checkJobExBox').on('change', function() {
+			// Handle toggle depending on In/Ex state
+			if($('#checkJobExBox').is(':checked')){
+				bJobInclusive = true;
+				inclString(filterJobDict, jobStrCol);
+			}else {
+				bJobInclusive = false; 
+				exRegex(filterJobDict, jobStrCol)
 			}
 		});
 
 
-		$("#warBtn").on('click', function (){ checkJobPress('WAR', 2, 		0, this); });
-		$("#mnkBtn").on('click', function (){ checkJobPress('MNK', 4, 		1, this); });
-		$("#whmBtn").on('click', function (){ checkJobPress('WHM', 8, 		2, this); });
-		$("#blmBtn").on('click', function (){ checkJobPress('BLM', 16, 		3, this); });
-		$("#rdmBtn").on('click', function (){ checkJobPress('RDM', 32, 		4, this); });
-		$("#thfBtn").on('click', function (){ checkJobPress('THF', 64, 		5, this); });
-		$("#pldBtn").on('click', function (){ checkJobPress('PLD', 128, 	6, this); });
-		$("#drkBtn").on('click', function (){ checkJobPress('DRK', 256, 	7, this); });
-		$("#bstBtn").on('click', function (){ checkJobPress('BST', 512, 	8, this); });
-		$("#brdBtn").on('click', function (){ checkJobPress('BRD', 1024, 	9, this); });
-		$("#rngBtn").on('click', function (){ checkJobPress('RNG', 2048, 	10, this); });
-		$("#samBtn").on('click', function (){ checkJobPress('SAM', 4096, 	11, this); });
-		$("#ninBtn").on('click', function (){ checkJobPress('NIN', 8192, 	12, this); });
-		$("#drgBtn").on('click', function (){ checkJobPress('DRG', 16384, 	13, this); });
-		$("#smnBtn").on('click', function (){ checkJobPress('SMN', 32768, 	14, this); });
-		$("#bluBtn").on('click', function (){ checkJobPress('BLU', 65536, 	15, this); });
-		$("#corBtn").on('click', function (){ checkJobPress('COR', 131072, 	16, this); });
-		$("#pupBtn").on('click', function (){ checkJobPress('PUP', 262144, 	17, this); });
-		$("#dncBtn").on('click', function (){ checkJobPress('DNC', 524288, 	18, this); });
-		$("#schBtn").on('click', function (){ checkJobPress('SCH', 1048576,	19, this); });
-		$("#geoBtn").on('click', function (){ checkJobPress('GEO', 2097152,	20, this); });
-		$("#runBtn").on('click', function (){ checkJobPress('RUN', 4194304,	21, this); });
-		$("#selJob").on('click', function (){ seldeselAllJob('all'); });
-		$("#deselJob").on('click', function (){ seldeselAllJob('none'); });
+		function updateStrDict(name, dict, caller){
+			// Individual updates for selected states in Dict
+			var show = dict[name][['show']]
+			if (logAll){console.log('updateStrDict: Button was ', show);};
+			if (show){
+				dict[name]['show'] = false;
+				caller.style.backgroundColor = "gray";
+				if (logAll){console.log('updateStrDict: Filtered out slot from ', dict);};
 
-		function checkJobPress(filterStr, filterInt, index, caller){
-			if(bInclusive == true){
-				if (filterJobArrayStr[index] == "^0$"){
-					filterJobArrayStr[index] = filterStr;
-					filterJobStr = filterJobArrayStr.join("|");
-					caller.style.backgroundColor = "#007BFF";
-					if (logAll == true){console.log('IN: 0 found', filterJobArrayStr);};
-					if (logAll == true){console.log('IN: filterstr',filterJobStr);};
-				} else {
-					filterJobArrayStr[index] = "^0$";
-					filterJobStr = filterJobArrayStr.join("|");
-					caller.style.backgroundColor = "gray";
-					if (logAll == true){console.log('IN: Job found', filterJobArrayStr);};
-					if (logAll == true){console.log('IN: filterstr',filterJobStr);};
-				}
-				if (logAll == true){console.log(filterJobStr);};
-				invDataTable.columns(27).search(filterJobStr, true, false, false).draw();
-				
 			} else {
-				if (filterJobArrayInt[index] == 0){
-					filterJobArrayInt[index] = filterInt;
-					filterJobStr = 0;
-					for(var i = 0; i < filterJobArrayInt.length;i++){
-						filterJobStr = filterJobStr + filterJobArrayInt[i];
-					}
-					caller.style.backgroundColor = "#007BFF";
-					if (logAll == true){console.log('EX: add job', filterJobArrayInt);};
-					if (logAll == true){console.log('EX: filterstr',filterJobStr);};
-				} else {
-					filterJobArrayInt[index] = 0;
-					filterJobStr = filterJobStr - filterInt;
-					caller.style.backgroundColor = "gray";
-					if (logAll == true){console.log('EX: remove job', filterJobArrayInt);};
-					filterJobStr = 0;
-					for(var i = 0; i < filterJobArrayInt.length;i++){
-						filterJobStr = filterJobStr + filterJobArrayInt[i];
-					}
-					if (logAll == true){console.log('EX: filterstr',filterJobStr);};
-				}
-				if (filterJobStr == 0)
-					filterJobStr = '0';
-				filterJobStr = filterJobStr.toString();
-				filterJobStr = '^'+filterJobStr+'$';
-				if (logAll == true){console.log('EX: filterInt',filterJobStr);};
-				invDataTable.columns(20).search(filterJobStr, true, false, false).draw();
+				dict[name]['show'] = true;
+				caller.style.backgroundColor = "#007BFF";
+				if (logAll){console.log('updateStrDict: Added slot to ', dict);};
 			}
-		} //------END checkJobPress
-			
-		function seldeselAllJob(filterStr){
-			if (filterStr == 'all'){
-				filterJobStr = filterJobAll.join("|");
-				if (logAll == true){console.log('ALL filterstr',filterJobStr);};
-				invDataTable.columns(27).search(filterJobStr, true, false, false).draw();
-				
-				elements = document.getElementsByClassName('job-btn');
-				for(var i=0; i < elements.length; i++) { 
+		}
+
+		function toggleBtns(option, dict, column, buttons ){
+			// Bulk update for selected states in catagory
+			let searchVal = ""
+			for ( const [key, value] of Object.entries(dict)){
+				if (option == 'all'){
+					dict[key]['show']=true;
+					searchVal = "";
+				} else {
+					dict[key]['show']=false;
+					searchVal = null;
+				}
+			}
+
+			// Update all button colors in catagory
+			elements = document.getElementsByClassName(buttons);
+			for(var i=0; i < elements.length; i++) {
+				let buttonId = elements[i].id.toString();
+				let name = buttonId.substring(0, buttonId.length - 3)
+
+				if(dict[name]['show']){
 					elements[i].style.backgroundColor = "#007BFF";
-				}
-			} else {
-				filterJobStr = '^0$';
-				if (logAll == true){console.log('NONE filterstr',filterJobStr);};
-				for(var i=0; i < filterJobArrayStr.length; i++) {
-					filterJobArrayStr[i]='^0$';
-				}
-				invDataTable.columns(27).search(filterJobStr, true, false, false).draw();
-				
-				elements = document.getElementsByClassName('job-btn');
-				for(var i=0; i < elements.length; i++) { 
+				}else{
 					elements[i].style.backgroundColor = "gray";
 				}
 			}
+
+			if (logAll){console.log('selDeselBtns: searchVal = ',searchVal);};
+			if (logAll){console.log('selDeselBtns: dict = ',dict);};
+			invDataTable.columns(column).search(searchVal, boundary=true, exact=true, regex=false).draw();
 		}
-	// --- End Jobs Filtering --- 
+
+
+		function tableSearch(name, dict, column, caller){
+			// Update state in Dict
+			updateStrDict(name, dict, caller);
+			// Search by binary to integer in column
+			integerSearch(dict, column);
+		}
+
+
+		function strSearch(name, dict, column, caller){
+			// Update state in Dict
+			updateStrDict(name, dict, caller);
+
+			// Build and apply Search field
+			if(bJobInclusive){
+				inclString(dict, column);
+			} else {
+				exRegex(dict, column)
+			}
+		}
+
+		function integerSearch(dict, column){
+			// Build and apply Search field using decimal values in column
+			let tempVal = 0;
+			let ord = 0;
+			for ( const [key, value] of Object.entries(dict)){
+				if (value['show']){
+					tempVal += value['value'];
+					ord += 1;
+				}
+			}
+
+			let searchVal = ""
+			if (ord >= 1){
+				searchVal = "^" + tempVal + "$";
+			} else {
+				searchVal = "";
+			}
+			if (logAll){console.log('integerSearch: searchVal = ', searchVal);};
+			invDataTable.columns(column).search(searchVal, boundary=true, exact=false, regex=true).draw();
+		}
+
+
+	// --- Reset Filter ---
+		$("#resetBtn").on('click', function (){ resetFilter(); });
+
+		function resetFilter(){
+			// Reset Jobs
+			for ( const [key, value] of Object.entries(filterJobDict)){
+				filterJobDict[key]['show']=true;
+			}
+			// Update button colors
+			elements = document.getElementsByClassName('job-btn');
+			for(var i=0; i < elements.length; i++) { 
+					elements[i].style.backgroundColor = "#007BFF";
+			}
+
+			// Reset Races
+
+			// Reset Bags
+
+			// Slot Buttons
+			for ( const [key, value] of Object.entries(filterSlotDict)){
+				filterSlotDict[key]['show']=true;
+				filterSlotVal = "";
+			}
+			// Update button colors
+			elements = document.getElementsByClassName('equip-btn');
+			for(var i=0; i < elements.length; i++) { 
+				elements[i].style.backgroundColor = "#007BFF";
+			}
+
+			invDataTable.columns().search("", boundary=true, exact=false, regex=false).draw();
+		}
+	// --- End Reset Filter ---
+
+
 	});
 	</script>
 {% endblock %}
 
 	{% block content %}
 		<div class="container">
-			<h4 class="text-center">Inventory for Aeliya</h4>
+			<label for="uname">Name:</label>
+			<input type="text" id="uname" name="uname" maxlength="32">
+			<label for="passkey">Passkey:</label>
+			<input type="text" id="passkey" name="passkey" maxlength="8">
+			<input type="submit" id="submit-request" value="Download">
+			<label id="download-status"></label>
+			<h4 class="text-center">Inventory Table </h4>
 			<table class="display nowrap" id="invTable">
 				<thead>
 					<tr>
 						<th>Char</th>
 						<th>Bag</th>
-						<th>Qty</th>
 						<th>Id</th>
 						<th>Item</th>
+						<th>Qty</th>
 						<th>Ja</th>
 						<th>Description</th>
 						<th>Jal</th>
@@ -373,6 +536,8 @@
 					</tr>
 				</tbody>
 			</table>
+			<label id="expire-text">Data automatically deletes at: </label>
+			<label id="expire-time"></label>
 		</div>
 		<script type="text/javascript">
 
@@ -384,162 +549,208 @@
 		<div class="col-2 collapse show d-md-flex bg-light pt-2 pl-0 min-vh-100" id="sidenav">
 			<ul class="nav flex-column flex-nowrap overflow-hidden">
 				<li class="nav-item">
-					<a class="nav-link collapsed text-truncate" href="#submenu1" data-toggle="collapse" data-target="#submenu1"><i class="fa fa-table"></i> <span class="d-none d-sm-inline">Filters +</span></a>
-					<div class="collapse" id="submenu1" aria-expanded="false">
-						<ul class="flex-column pl-2 nav">
-							<li class="nav-item">
-								<a class="nav-link collapsed py-1" href="#submenu1sub1" data-toggle="collapse" data-target="#submenu1sub1"><span>Jobs +</span></a>
-								<div class="collapse" id="submenu1sub1" aria-expanded="false">
-									<ul class="flex-column nav pl-4">
-										<li class="nav-item">
-											<li>
-											<input id="checkExBox" type="checkbox" checked data-toggle="toggle" data-on="Inclusive" data-off="Exclusive" data-width="70" data-size="sm"></input>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="warBtn">WAR</button>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="mnkBtn">MNK</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="whmBtn">WHM</button>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="blmBtn">BLM</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="rdmBtn">RDM</button>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="thfBtn">THF</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="pldBtn">PLD</button>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="drkBtn">DRK</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="bstBtn">BST</button>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="brdBtn">BRD</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="rngBtn">RNG</button>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="samBtn">SAM</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="ninBtn">NIN</button>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="drgBtn">DRG</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="smnBtn">SMN</button>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="bluBtn">BLU</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="corBtn">COR</button>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="pupBtn">PUP</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="dncBtn">DNC</button>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="schBtn">SCH</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="geoBtn">GEO</button>
-											<button class="btn btn-primary btn-sm job-btn" role="button" id="runBtn">RUN</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-lg" role="button" id="selJob">Select All</button>
-											<button class="btn btn-primary btn-lg" role="button" id="deselJob">Deselect All</button>
-											</li>
-										</li>
-									</ul>
-								</div>
+					<li class="nav-item">
+						<a class="nav-link collapsed py-1" href="#submenu1" data-toggle="collapse" data-target="#submenu1"><span>Upload File +</span></a>
+						<div class="collapse" id="submenu1" aria-expanded="false">
+							<ul class="flex-column nav pl-4">
+								<li class="nav-item">
+									<li>
+									<input type="file" id="file-input" />
+									<label for="up-name">Name:</label><br>
+									<input type="text" id="up-name" name="up-name" size="18" style="font-size:10pt;" maxlength="32"/>
+									<label for="up-passkey">Passkey (optional):</label><br>
+									<input type="text" id="up-passkey" name="up-passkey" size="10" style="font-size:10pt;" maxlength="8"/><br>
+									</li>
+									<li>
+									<input type="submit" id="submit-upload" value="Upload" style="padding-top:4px;"/><br>
+									<label id="upload-status"></label>
+									</li>
+								</li>
+							</ul>
+						</div>
+						<a class="nav-link collapsed py-1" href="#submenu2" data-toggle="collapse" data-target="#submenu2"><span>Jobs +</span></a>
+						<div class="collapse" id="submenu2" aria-expanded="false">
+							<ul class="flex-column nav pl-4">
+								<li class="nav-item">
+									<li>
+									<input id="checkJobExBox" type="checkbox" checked data-toggle="toggle" data-onlabel="Inclusive" data-offlabel="Exclusive" data-width="104" data-height="10"></input>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="WARBtn">WAR</button>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="MNKBtn">MNK</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="WHMBtn">WHM</button>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="BLMBtn">BLM</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="RDMBtn">RDM</button>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="THFBtn">THF</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="PLDBtn">PLD</button>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="DRKBtn">DRK</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="BSTBtn">BST</button>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="BRDBtn">BRD</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="RNGBtn">RNG</button>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="SAMBtn">SAM</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="NINBtn">NIN</button>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="DRGBtn">DRG</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="SMNBtn">SMN</button>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="BLUBtn">BLU</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="CORBtn">COR</button>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="PUPBtn">PUP</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="DNCBtn">DNC</button>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="SCHBtn">SCH</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="GEOBtn">GEO</button>
+									<button class="btn btn-primary btn-sm job-btn" role="button" id="RUNBtn">RUN</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-lg" role="button" id="selJob">All Jobs</button>
+									<button class="btn btn-primary btn-lg" role="button" id="deselJob">Deselect All</button>
+									</li>
+								</li>
+							</ul>
+						</div>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link collapsed py-1" href="#submenu3" data-toggle="collapse" data-target="#submenu3"><span>Races +</span></a>
+						<div class="collapse" id="submenu3" aria-expanded="false">
+							<ul class="flex-column nav pl-4">
+								<li class="nav-item">
+									<li>
+									<button class="btn btn-primary btn-sm race-btn" role="button" id="HumeMBtn">H &#x2642 </button>
+									<button class="btn btn-primary btn-sm race-btn" role="button" id="HumeFBtn">H &#x2640 </button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm race-btn" role="button"id="ElvMBtn">E &#x2642 </button>
+									<button class="btn btn-primary btn-sm race-btn" role="button"id="ElvFBtn">E &#x2640 </button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm race-btn" role="button" id="TaruMBtn">T &#x2642 </button>
+									<button class="btn btn-primary btn-sm race-btn" role="button" id="TaruFBtn">T &#x2640 </button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm race-btn" role="button" id="GkBtn">Gk</button>
+									<button class="btn btn-primary btn-sm race-btn" role="button" id="MiBtn">Mi</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-lg" role="button" id="selRace">All Races</button>
+									<button class="btn btn-primary btn-lg" role="button" id="deselRace">Deselect All</button>
+									</li>
+								</li>
+							</ul>
+						</div>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link collapsed py-1" href="#submenu4" data-toggle="collapse" data-target="#submenu4"><span>Bags +</span></a>
+						<div class="collapse" id="submenu4" aria-expanded="false">
+							<ul class="flex-column nav pl-4">
+								<li class="nav-item">
+									<li>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="inventoryBtn">INVY</button>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="satchelBtn">SATC</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="storageBtn">STOR</button>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="lockerBtn">LOCK</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="safeBtn">SAF1</button>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="safe2Btn">SAF2</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="sackBtn">SACK</button>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="caseBtn">CASE</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="slipBtn">SLIP</button>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="keyitemsBtn">KI</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobeBtn">WAR1</button>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe2Btn">WAR2</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe3Btn">WAR3</button>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe4Btn">WAR4</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe5Btn">WAR5</button>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe6Btn">WAR6</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe7Btn">WAR7</button>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe8Btn">WAR8</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="recycleBtn">RECY</button>
+									<button class="btn btn-primary btn-sm inv-btn" role="button" id="temporaryBtn">TEMP</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-lg" role="button" id="selBags">All Bags</button>
+									<button class="btn btn-primary btn-lg" role="button" id="deselBags">Deselect All</button>
+									</li>
+								</li>
+							</ul>
+						</div>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link collapsed py-1" href="#submenu5" data-toggle="collapse" data-target="#submenu5"><span>Slots +</span></a>
+						<div class="collapse" id="submenu5" aria-expanded="false">
+							<ul class="flex-column nav pl-4">
+								<li class="nav-item">
+									<li>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="Hand1Btn">MAIN</button>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="Hand2Btn">SUB</button>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="RangedBtn">RNGD</button>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="AmmoBtn">AMMO</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="HeadBtn">HEAD</button>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="NeckBtn">NECK</button>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="EarsBtn">EAR</button>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="BodyBtn">BODY</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="HandsBtn">HAND</button>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="RingBtn">RING</button>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="BackBtn">BACK</button>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="BeltBtn">BELT</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="LegsBtn">LEGS</button>
+									<button class="btn btn-primary btn-sm equip-btn" role="button" id="FeetBtn">FEET</button>
+									</li>
+									<li>
+									<button class="btn btn-primary btn-lg" role="button" id="selSlots">All Slots</button>
+									<button class="btn btn-primary btn-lg" role="button" id="deselSlots">Deselect All</button>
+									</li>
+								</li>
+							</ul>
+						</div>
+					</li>
+					<ul class="flex-column nav pl-4">
+						<li class="nav-item">
+							<li>
+							<button class="btn btn-primary btn-lg" role="button" id="resetBtn">Reset Search</button>
 							</li>
-							<li class="nav-item">
-								<a class="nav-link collapsed py-1" href="#submenu1sub2" data-toggle="collapse" data-target="#submenu1sub2"><span>Races +</span></a>
-								<div class="collapse" id="submenu1sub2" aria-expanded="false">
-									<ul class="flex-column nav pl-4">
-										<li class="nav-item">
-											<li>
-											<button class="btn btn-primary btn-sm" role="button" id="HmaleBtn">H &#x2642 </button>
-											<button class="btn btn-primary btn-sm" role="button" id="HfemaleBtn">H &#x2640 </button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm" role="button"id="EmaleBtn">E &#x2642 </button>
-											<button class="btn btn-primary btn-sm" role="button"id="EfemaleBtn">E &#x2640 </button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm" role="button" id="TmaleBtn">T &#x2642 </button>
-											<button class="btn btn-primary btn-sm" role="button" id="TfemaleBtn">T &#x2640 </button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm" role="button" id="GalkaBtn">Gk</button>
-											<button class="btn btn-primary btn-sm" role="button" id="MithraBtn">Mi</button>
-											</li>
-										</li>
-									</ul>
-								</div>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link collapsed py-1" href="#submenu1sub3" data-toggle="collapse" data-target="#submenu1sub3"><span>Bags +</span></a>
-								<div class="collapse" id="submenu1sub3" aria-expanded="false">
-									<ul class="flex-column nav pl-4">
-										<li class="nav-item">
-											<li>
-											<button class="btn btn-primary btn-sm" role="button" id="inventoryBtn">INVY</button>
-											<button class="btn btn-primary btn-sm" role="button" id="satchelBtn">SATC</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm" role="button" id="storageBtn">STOR</button>
-											<button class="btn btn-primary btn-sm" role="button" id="lockerBtn">LOCK</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm" role="button" id="safe1Btn">SAF1</button>
-											<button class="btn btn-primary btn-sm" role="button" id="safe2Btn">SAF2</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm" role="button" id="sackBtn">SACK</button>
-											<button class="btn btn-primary btn-sm" role="button" id="caseBtn">CASE</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm" role="button" id="wardrobe1Btn">WAR1</button>
-											<button class="btn btn-primary btn-sm" role="button" id="wardrobe2Btn">WAR2</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm" role="button" id="wardrobe3Btn">WAR3</button>
-											<button class="btn btn-primary btn-sm" role="button" id="wardrobe4Btn">WAR4</button>
-											</li>
-										</li>
-									</ul>
-								</div>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link collapsed py-1" href="#submenu1sub4" data-toggle="collapse" data-target="#submenu1sub4"><span>Slots +</span></a>
-								<div class="collapse" id="submenu1sub4" aria-expanded="false">
-									<ul class="flex-column nav pl-4">
-										<li class="nav-item">
-											<li>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="hand1Btn">MAIN</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="hand2Btn">SUB</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="rangedBtn">RNGD</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="ammoBtn">AMMO</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="headBtn">HEAD</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="neckBtn">NECK</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="ear1Btn">EAR1</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="ear2Btn">EAR2</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="bodyBtn">BODY</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="handsBtn">HAND</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="ring1Btn">RNG1</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="ring2Btn">RNG2</button>
-											</li>
-											<li>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="backBtn">BACK</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="beltBtn">BELT</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="legsBtn">LEGS</button>
-											<button class="btn btn-primary btn-sm equip-btn" role="button" id="feetBtn">FEET</button>
-											</li>
-										</li>
-									</ul>
-								</div>
-							</li>
-						</ul>
-					</div>
+						</li>
+					</ul>
 				</li>
 			</ul>
 		</div>
