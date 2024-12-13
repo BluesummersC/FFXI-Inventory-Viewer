@@ -1,26 +1,14 @@
  /* The sidebar menu */
-.sidenav {
-  height: 100%; /* Full-height: remove this if you want "auto" height */
-  width: 160px; /* Set the width of the sidebar */
-  position: fixed; /* Fixed Sidebar (stay in place on scroll) */
-  z-index: 1; /* Stay on top */
-  top: 50px; /* Stay at the top */
-  left: 0;
-  background-color: #111; /* Black */
-  overflow-x: hidden; /* Disable horizontal scroll */
-  padding-top: 20px;
-}
-
- /* The sidebar menu */
 #sidenav {
   height: 100%; /* Full-height: remove this if you want "auto" height */
-  width: 220px; /* Set the width of the sidebar */
+  width: 245px; /* Set the width of the sidebar */
   position: fixed; /* Fixed Sidebar (stay in place on scroll) */
   z-index: 1; /* Stay on top */
   top: 50px; /* Stay at the top */
   left: 0;
   background-color: #111; /* Black */
   overflow-x: hidden; /* Disable horizontal scroll */
+  overflow-y: scroll;
   padding-top: 20px;
 }
 
@@ -28,19 +16,19 @@
 .sidenav a {
   padding: 6px 8px 6px 16px;
   text-decoration: none;
-  font-size: 25px;
-  color: #818181;
+  font-size: 16px;
+  color: #2768f5;
   display: block;
 }
 
 /* When you mouse over the navigation links, change their color */
 .sidenav a:hover {
-  color: #f1f1f1;
+  color: #4680ff;
 }
 
 /* Style page content */
 .main {
-  margin-left: 160px; /* Same as the width of the sidebar */
+  margin-left: 240px; /* Same as the width of the sidebar */
   padding: 0px 10px;
 }
 
@@ -100,20 +88,23 @@
 
 .toggle .toggle-group label {
 
-    font-size: 15px;
+  font-size: 15px;
 	padding-left: 3px;
 	padding-top: 0px;
 }
 
-#toggleBtn{
-	padding-left:500px;
+.container {
+  padding-top: 5px;
 }
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+.ok{
+  font-size: 14px;
+}
+.op{
+font-size: 14px;
+margin-left: 00px;
+font-weight: bold;
+background-color: rgb(255, 255, 0);
+border-radius: 5px;
+cursor: pointer;
+}
