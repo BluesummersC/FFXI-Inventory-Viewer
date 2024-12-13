@@ -149,17 +149,6 @@ handle_command = function(...)
     end
 end
 
-windower.register_event('unhandled command', function(command, ...)
-    if command:lower() == 'find' then
-        local me = windower.ffxi.get_mob_by_target('me')
-        if me then
-            handle_command(':%s':format(me.name), ...)
-        else
-            handle_command(...)
-        end
-    end
-end)
-
 windower.register_event('addon command', handle_command)
 
 
