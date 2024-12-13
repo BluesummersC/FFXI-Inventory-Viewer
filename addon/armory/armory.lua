@@ -49,10 +49,9 @@ local function sendFindallFile()
         print("Must be logged into a character in order to get bag information!")
         return nil
     end
-    local player_name   = windower.ffxi.get_player().name
-    local findAllFileName = player_name..".lua"
-    local file = windower.addon_path.."..\\findAll\\data\\"..findAllFileName
 
+    local player_name   = windower.ffxi.get_player().name
+    local file = windower.addon_path.."..\\findAll\\data\\"..player_name..".lua"
 
     if windower.file_exists(file) then
 
@@ -62,7 +61,7 @@ local function sendFindallFile()
         fileT.keyitems = fileT['key items']
         fileT['key items'] = nil
 
-        -- Remove the empty arrays
+        -- Remove the arrays of empty storage locations
         for k, v in pairs(fileT) do
             if type(v) == 'table' then
                 if next(v) == nil then
@@ -83,36 +82,36 @@ local function sendFindallFile()
 
         print("Processing...")
         -- Call https in order to get the ssl wrapper
-        local res, code, response_headers, status, sentUrl = https.request(
-            url_endpoint,
-            jsonObj
-        )
-        if res ~= nil then
+        local res, code, response_headers, status = https.request(url_endpoint, jsonObj)
+        if res ~= nil and string.find(res, "name") and string.find(res, "passkey") then
             if debug then print("(Debug) Response: "..res) end
+
             -- make it a table
             local tosplit = string.gsub(res, '"', '')
             local sub = string.sub(tosplit, 2, #tosplit-2 )
             if debug then print("(Debug) Sub: "..sub) end
-
             local namepass = {}
             for k, v in string.gmatch(sub, "(%w+):(%w+)") do
                 namepass[k] = v
             end
-            -- print(namepass.passkey)
+
             local link = url..'?name='..namepass.name..'&passkey='..namepass.passkey
-            print('URL of')
+            print('URL sent to clipboard:')
             print('   '..link)
-            print('sent to clipboard.')
             windower.copy_to_clipboard(link)
         else
             print('ERROR: Failed to get result from database!')
+            if debug then print("(Debug) Response: "..res) end
         end
+
         if code ~= nil then
-            if debug then print("(Debug) Code: "..code) end
+            if debug then print("(Debug) Code: "..dump(code)) end
         end
+
         if status ~= nil then
-            if debug then print("(Debug) Status: "..status) end
+            if debug then print("(Debug) Status: "..dump(status)) end
         end
+
     else
         print("ERROR: Could not find inventory file for "..player_name)
     end
@@ -122,9 +121,8 @@ end
 handle_command = function(...)
     if first_pass then
         first_pass = false
-        -- log('pre send_command')
+        -- Is this needed?
         windower.send_command('wait 0.05;armory '..table.concat({...},' '))
-        -- log('post send_command')
     else
         first_pass = true
         local params = L{...}
@@ -150,5 +148,3 @@ handle_command = function(...)
 end
 
 windower.register_event('addon command', handle_command)
-
-
