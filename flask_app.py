@@ -347,7 +347,7 @@ def selectInventoryTableWithPasskey(name, passkey):
 
 	ret = 'Error'
 	try:
-		query = ("SELECT * FROM inventories WHERE name = %s AND passkey = %s")
+		query = ("SELECT * FROM inventories WHERE name = %s AND binary passkey = %s")
 		cur.execute(query, (name, passkey))
 
 		ret = cur.fetchall()
