@@ -586,213 +586,221 @@
 
 	{% block sidebar %}
 	 <!-- Side navigation -->
-		<div class="col-2 collapse show d-md-flex bg-light pt-2 pl-0 min-vh-100" id="sidenav">
-			<ul class="nav flex-column flex-nowrap overflow-hidden">
+		<div class="col-2 collapse show d-md-flex bg-light pt-2 pl-0 min-vh-100 sidenav" id="sidenav">
+			<ul class="nav flex-column flex-nowrap ">
 				<li class="nav-item">
-					<li class="nav-item">
-						<a class="nav-link collapsed py-1" href="#submenu1" data-toggle="collapse" data-target="#submenu1"><span>Upload File +</span></a>
-						<div class="collapse" id="submenu1" aria-expanded="false">
-							<ul class="flex-column nav pl-4">
-								<li class="nav-item">
-									<li>
-									<input type="file" id="file-input" accept=".lua"/>
-									<!-- <label for="up-name">Name:</label><br> -->
-									<input type="text" id="up-name" name="up-name" size="18" style="font-size:10pt;" maxlength="32" placeholder="Name (required)"/>
-									<!-- <label for="up-passkey">Passkey (optional):</label><br> -->
-									<input type="text" id="up-passkey" name="up-passkey" size="18" style="font-size:10pt;" maxlength="8" placeholder="Passkey (optional)"/><br>
-									</li>
-									<li>
-									<input type="submit" id="submit-upload" value="Upload" /><br>
-									<label id="upload-status"></label>
-									</li>
+					<a class="nav-link collapsed py-1" href="#submenu1" data-toggle="collapse" data-target="#submenu1"><span>Upload File +</span></a>
+					<div class="collapse" id="submenu1" aria-expanded="false">
+						<ul class="flex-column nav pl-4">
+							<li class="nav-item">
+								<li>
+								<input type="file" id="file-input" accept=".lua"/>
+								<!-- <label for="up-name">Name:</label><br> -->
+								<input type="text" id="up-name" name="up-name" size="18" style="font-size:10pt;" maxlength="32" placeholder="Name (required)"/>
+								<!-- <label for="up-passkey">Passkey (optional):</label><br> -->
+								<input type="text" id="up-passkey" name="up-passkey" size="18" style="font-size:10pt;" maxlength="8" placeholder="Passkey (optional)"/><br>
 								</li>
-							</ul>
-						</div>
-						<a class="nav-link collapsed py-1" href="#submenu2" data-toggle="collapse" data-target="#submenu2"><span>Jobs +</span></a>
-						<div class="collapse" id="submenu2" aria-expanded="false">
-							<ul class="flex-column nav pl-4">
-								<li class="nav-item">
-									<li>
-									<input id="checkJobExBox" type="checkbox" checked data-toggle="toggle" data-onlabel="Inclusive" data-offlabel="Exclusive" data-width="104" data-height="10"></input>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="WARBtn">WAR</button>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="MNKBtn">MNK</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="WHMBtn">WHM</button>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="BLMBtn">BLM</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="RDMBtn">RDM</button>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="THFBtn">THF</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="PLDBtn">PLD</button>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="DRKBtn">DRK</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="BSTBtn">BST</button>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="BRDBtn">BRD</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="RNGBtn">RNG</button>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="SAMBtn">SAM</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="NINBtn">NIN</button>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="DRGBtn">DRG</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="SMNBtn">SMN</button>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="BLUBtn">BLU</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="CORBtn">COR</button>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="PUPBtn">PUP</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="DNCBtn">DNC</button>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="SCHBtn">SCH</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="GEOBtn">GEO</button>
-									<button class="btn btn-primary btn-sm job-btn" role="button" id="RUNBtn">RUN</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-lg" role="button" id="selJob">All Jobs</button>
-									<button class="btn btn-primary btn-lg" role="button" id="deselJob">Deselect All</button>
-									</li>
+								<li>
+								<input type="submit" id="submit-upload" value="Upload" /><br>
+								<label id="upload-status"></label>
 								</li>
-							</ul>
-						</div>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link collapsed py-1" href="#submenu3" data-toggle="collapse" data-target="#submenu3"><span>Races +</span></a>
-						<div class="collapse" id="submenu3" aria-expanded="false">
-							<ul class="flex-column nav pl-4">
-								<li class="nav-item">
-									<li>
-									<button class="btn btn-primary btn-sm race-btn" role="button" id="HumeMBtn">H &#x2642 </button>
-									<button class="btn btn-primary btn-sm race-btn" role="button" id="HumeFBtn">H &#x2640 </button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm race-btn" role="button"id="ElvMBtn">E &#x2642 </button>
-									<button class="btn btn-primary btn-sm race-btn" role="button"id="ElvFBtn">E &#x2640 </button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm race-btn" role="button" id="TaruMBtn">T &#x2642 </button>
-									<button class="btn btn-primary btn-sm race-btn" role="button" id="TaruFBtn">T &#x2640 </button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm race-btn" role="button" id="GkBtn">Gk</button>
-									<button class="btn btn-primary btn-sm race-btn" role="button" id="MiBtn">Mi</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-lg" role="button" id="selRace">All Races</button>
-									<button class="btn btn-primary btn-lg" role="button" id="deselRace">Deselect All</button>
-									</li>
-								</li>
-							</ul>
-						</div>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link collapsed py-1" href="#submenu4" data-toggle="collapse" data-target="#submenu4"><span>Bags +</span></a>
-						<div class="collapse" id="submenu4" aria-expanded="false">
-							<ul class="flex-column nav pl-4">
-								<li class="nav-item">
-									<li>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="inventoryBtn">INVY</button>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="satchelBtn">SATC</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="storageBtn">STOR</button>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="lockerBtn">LOCK</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="safeBtn">SAF1</button>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="safe2Btn">SAF2</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="sackBtn">SACK</button>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="caseBtn">CASE</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="slipBtn">SLIP</button>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="keyitemsBtn">KI</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobeBtn">WAR1</button>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe2Btn">WAR2</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe3Btn">WAR3</button>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe4Btn">WAR4</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe5Btn">WAR5</button>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe6Btn">WAR6</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe7Btn">WAR7</button>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe8Btn">WAR8</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="recycleBtn">RECY</button>
-									<button class="btn btn-primary btn-sm inv-btn" role="button" id="temporaryBtn">TEMP</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-lg" role="button" id="selBags">All Bags</button>
-									<button class="btn btn-primary btn-lg" role="button" id="deselBags">Deselect All</button>
-									</li>
-								</li>
-							</ul>
-						</div>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link collapsed py-1" href="#submenu5" data-toggle="collapse" data-target="#submenu5"><span>Slots +</span></a>
-						<div class="collapse" id="submenu5" aria-expanded="false">
-							<ul class="flex-column nav pl-4">
-								<li class="nav-item">
-									<li>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="Hand1Btn">MAIN</button>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="Hand2Btn">SUB</button>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="RangedBtn">RNGD</button>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="AmmoBtn">AMMO</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="HeadBtn">HEAD</button>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="NeckBtn">NECK</button>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="EarsBtn">EAR</button>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="BodyBtn">BODY</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="HandsBtn">HAND</button>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="RingBtn">RING</button>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="BackBtn">BACK</button>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="BeltBtn">BELT</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="LegsBtn">LEGS</button>
-									<button class="btn btn-primary btn-sm equip-btn" role="button" id="FeetBtn">FEET</button>
-									</li>
-									<li>
-									<button class="btn btn-primary btn-lg" role="button" id="selSlots">All Slots</button>
-									<button class="btn btn-primary btn-lg" role="button" id="deselSlots">Deselect All</button>
-									</li>
-								</li>
-							</ul>
-						</div>
-					</li>
-					<ul class="flex-column nav pl-4">
-						<li class="nav-item">
-							<li>
-							<button class="btn btn-primary btn-lg" role="button" id="resetBtn">Reset Search</button>
 							</li>
-						</li>
-					</ul>
+						</ul>
+					</div>
 				</li>
-			</ul>
+				<li>
+					<a class="nav-link collapsed py-1" href="#submenu2" data-toggle="collapse" data-target="#submenu2"><span>Jobs +</span></a>
+					<div class="collapse" id="submenu2" aria-expanded="false">
+						<ul class="flex-column nav pl-4">
+							<li class="nav-item">
+								<li>
+								<input id="checkJobExBox" type="checkbox" checked data-toggle="toggle" data-onlabel="Inclusive" data-offlabel="Exclusive" data-width="104" data-height="10"></input>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="WARBtn">WAR</button>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="MNKBtn">MNK</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="WHMBtn">WHM</button>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="BLMBtn">BLM</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="RDMBtn">RDM</button>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="THFBtn">THF</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="PLDBtn">PLD</button>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="DRKBtn">DRK</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="BSTBtn">BST</button>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="BRDBtn">BRD</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="RNGBtn">RNG</button>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="SAMBtn">SAM</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="NINBtn">NIN</button>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="DRGBtn">DRG</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="SMNBtn">SMN</button>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="BLUBtn">BLU</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="CORBtn">COR</button>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="PUPBtn">PUP</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="DNCBtn">DNC</button>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="SCHBtn">SCH</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="GEOBtn">GEO</button>
+								<button class="btn btn-primary btn-sm job-btn" role="button" id="RUNBtn">RUN</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-lg" role="button" id="selJob">All Jobs</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-lg" role="button" id="deselJob">Deselect All</button>
+								</li>
+							</li>
+						</ul>
+					</div>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link collapsed py-1" href="#submenu3" data-toggle="collapse" data-target="#submenu3"><span>Races +</span></a>
+					<div class="collapse" id="submenu3" aria-expanded="false">
+						<ul class="flex-column nav pl-4">
+							<li class="nav-item">
+								<li>
+								<button class="btn btn-primary btn-sm race-btn" role="button" id="HumeMBtn">H &#x2642 </button>
+								<button class="btn btn-primary btn-sm race-btn" role="button" id="HumeFBtn">H &#x2640 </button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm race-btn" role="button"id="ElvMBtn">E &#x2642 </button>
+								<button class="btn btn-primary btn-sm race-btn" role="button"id="ElvFBtn">E &#x2640 </button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm race-btn" role="button" id="TaruMBtn">T &#x2642 </button>
+								<button class="btn btn-primary btn-sm race-btn" role="button" id="TaruFBtn">T &#x2640 </button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm race-btn" role="button" id="GkBtn">Gk</button>
+								<button class="btn btn-primary btn-sm race-btn" role="button" id="MiBtn">Mi</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-lg" role="button" id="selRace">All Races</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-lg" role="button" id="deselRace">Deselect All</button>
+								</li>
+							</li>
+						</ul>
+					</div>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link collapsed py-1" href="#submenu4" data-toggle="collapse" data-target="#submenu4"><span>Bags +</span></a>
+					<div class="collapse" id="submenu4" aria-expanded="false">
+						<ul class="flex-column nav pl-4">
+							<li class="nav-item">
+								<li>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="inventoryBtn">INVY</button>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="satchelBtn">SATC</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="storageBtn">STOR</button>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="lockerBtn">LOCK</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="safeBtn">SAF1</button>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="safe2Btn">SAF2</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="sackBtn">SACK</button>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="caseBtn">CASE</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="slipBtn">SLIP</button>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="keyitemsBtn">KI</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobeBtn">WAR1</button>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe2Btn">WAR2</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe3Btn">WAR3</button>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe4Btn">WAR4</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe5Btn">WAR5</button>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe6Btn">WAR6</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe7Btn">WAR7</button>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="wardrobe8Btn">WAR8</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="recycleBtn">RECY</button>
+								<button class="btn btn-primary btn-sm inv-btn" role="button" id="temporaryBtn">TEMP</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-lg" role="button" id="selBags">All Bags</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-lg" role="button" id="deselBags">Deselect All</button>
+								</li>
+							</li>
+						</ul>
+					</div>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link collapsed py-1" href="#submenu5" data-toggle="collapse" data-target="#submenu5"><span>Slots +</span></a>
+					<div class="collapse" id="submenu5" aria-expanded="false">
+						<ul class="flex-column nav pl-4">
+							<li class="nav-item">
+								<li>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="Hand1Btn">MAIN</button>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="Hand2Btn">SUB</button>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="RangedBtn">RNGD</button>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="AmmoBtn">AMMO</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="HeadBtn">HEAD</button>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="NeckBtn">NECK</button>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="EarsBtn">EAR</button>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="BodyBtn">BODY</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="HandsBtn">HAND</button>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="RingBtn">RING</button>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="BackBtn">BACK</button>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="BeltBtn">BELT</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="LegsBtn">LEGS</button>
+								<button class="btn btn-primary btn-sm equip-btn" role="button" id="FeetBtn">FEET</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-lg" role="button" id="selSlots">All Slots</button>
+								</li>
+								<li>
+								<button class="btn btn-primary btn-lg" role="button" id="deselSlots">Deselect All</button>
+								</li>
+							</li>
+						</ul>
+					</div>
+				</li>
+				<ul class="flex-column nav pl-4">
+					<li class="nav-item">
+						<li>
+						<button class="btn btn-primary btn-lg" role="button" id="resetBtn">Reset Search</button>
+						</li>
+					</li>
+				</ul>
+		</ul>
 		</div>
 		
 
