@@ -53,68 +53,88 @@ local function sendFindallFile()
     local player_name   = windower.ffxi.get_player().name
     local file = windower.addon_path.."..\\findAll\\data\\"..player_name..".lua"
 
-    if windower.file_exists(file) then
-
-        -- Since FindAll outputs a Lua table, we can directly rebuild it here.
-        fileT = dofile(file)
-        -- spaces in keys plays hell on the jquery table, go ahead and remove it here
-        fileT.keyitems = fileT['key items']
-        fileT['key items'] = nil
-
-        -- Remove the arrays of empty storage locations
-        for k, v in pairs(fileT) do
-            if type(v) == 'table' then
-                if next(v) == nil then
-                    fileT[k] = nil
-                end
-            end
-        end
-
-        -- Add some additional info to the table
-        local payload = {}
-        payload.file_data = fileT
-        payload.name = player_name
-        payload.passkey = ""
-
-        -- Build a json object using json module from
-        --    https://github.com/rxi/json.lua/blob/master/json.lua
-        local jsonObj = json.encode(payload)
-
-        print("Processing...")
-        -- Call https in order to get the ssl wrapper
-        local res, code, response_headers, status = https.request(url_endpoint, jsonObj)
-        if res ~= nil and string.find(res, "name") and string.find(res, "passkey") then
-            if debug then print("(Debug) Response: "..res) end
-
-            -- make it a table
-            local tosplit = string.gsub(res, '"', '')
-            local sub = string.sub(tosplit, 2, #tosplit-2 )
-            if debug then print("(Debug) Sub: "..sub) end
-            local namepass = {}
-            for k, v in string.gmatch(sub, "(%w+):(%w+)") do
-                namepass[k] = v
-            end
-
-            local link = url..'?name='..namepass.name..'&passkey='..namepass.passkey
-            print('URL sent to clipboard:')
-            print('   '..link)
-            windower.copy_to_clipboard(link)
-        else
-            print('ERROR: Failed to get result from database!')
-            if debug then print("(Debug) Response: "..res) end
-        end
-
-        if code ~= nil then
-            if debug then print("(Debug) Code: "..dump(code)) end
-        end
-
-        if status ~= nil then
-            if debug then print("(Debug) Status: "..dump(status)) end
-        end
-
-    else
-        print("ERROR: Could not find inventory file for "..player_name)
+    if windower.file_exists(file) == false then
+        print("ERROR: Could not find inventory file for "..player_name". Run FindAll's export option to create it.")
+        return nil
     end
+
+    -- Since FindAll outputs a Lua table, we can directly rebuild it here.
+    local fileT = dofile(file)
+    -- spaces in keys plays hell on the jquery table, go ahead and remove it here
+    fileT.keyitems = fileT['key items']
+    fileT['key items'] = nil
+
+    -- Remove the arrays of empty storage locations
+    local cnt = 0
+    for k, v in pairs(fileT) do
+        cnt = cnt + 1
+        if type(v) == 'table' then
+            if next(v) == nil then
+                fileT[k] = nil
+            end
+        end
+    end
+
+    if cnt == 0 then
+        print('ERROR: No data in FindAll file. Try to export your inventory from FindAll again.')
+        return nil
+    end
+
+    -- Add some additional info to the table
+    local payload = {}
+    payload.file_data = fileT
+    payload.name = player_name
+    payload.passkey = ""
+
+    -- Build a json object using json module from
+    --    https://github.com/rxi/json.lua/blob/master/json.lua
+    local jsonObj = json.encode(payload)
+
+    print("Processing...")
+    -- Call https in order to get the ssl wrapper
+    local res, code, response_headers, status = https.request(url_endpoint, jsonObj)
+
+    -- return if we don't get what we wanted
+    if res == nil then
+        print('ERROR: Failed to get result from database!')
+        return nil
+    end
+
+    if string.find(res, "name") == false or string.find(res, "passkey") == false then
+        print('ERROR: Database failed to return a name or passkey!')
+        return nil
+    end
+
+    if debug then print("(Debug) Response: "..res) end
+
+    -- make the returned string a table
+    local namepassT = {}
+    local tosplit = string.gsub(res, '"', '')
+    local sub = string.sub(tosplit, 2, #tosplit-2 )
+    if debug then print("(Debug) Sub: "..sub) end
+    for k, v in string.gmatch(sub, "(%w+):(%w+)") do
+        namepassT[k] = v
+    end
+
+    if namepassT.name == nil or namepassT.passkey == nil then
+        print('ERROR: Could not get the name and passkey from the returned string')
+        return nil
+    end
+
+    local link = url..'?name='..namepassT.name..'&passkey='..namepassT.passkey
+    print('URL sent to clipboard:')
+    print('   '..link)
+    windower.copy_to_clipboard(link)
+
+
+    if code ~= nil then
+        if debug then print("(Debug) Code: "..dump(code)) end
+    end
+
+    if status ~= nil then
+        if debug then print("(Debug) Status: "..dump(status)) end
+    end
+    
 end
 
 
@@ -124,8 +144,8 @@ handle_command = function(...)
         -- Is this needed?
         windower.send_command('wait 0.05;armory '..table.concat({...},' '))
     else
-        first_pass = true
         local params = L{...}
+        first_pass = true
         debug = false
 
         -- convert command line params (SJIS) to UTF-8
