@@ -123,10 +123,35 @@
 
 		$('#submit-upload').click(function(e){
 			e.preventDefault();
-			const file = document.getElementById('file-input').files[0];
-				if (file) {
+			let file = document.getElementById('file-input').files[0];
+			let upload_name = document.getElementById('up-name').value;
+			let status_text = document.getElementById('upload-status');
+
+			if (!file) {
+				console.log("No file uploaded");
+				status_text.innerHTML = "File required!";
+				status_text.style.color = "red";
+			} else if (isEmpty(upload_name)) {
+				console.log("No upload name: ", upload_name);
+				status_text.innerHTML = "Name required!";
+				status_text.style.color = "red";
+			} else {
+				console.log("Uploading!");
+				status_text.innerHTML = "Uploading...";
+				status_text.style.color = "blue";
 				processFile(file);
-				}
+			}
+
+			// if(!isEmpty(upload_name) && file){
+			// 	processFile(file);
+			// } else if(!file) {
+			// 	status_text.innerHTML = "File required!"
+			// 	status_text.style.color = "red"
+			// }else if(isEmpty(upload_name)) {
+			// 	status_text.innerHTML = "Name required!"
+			// 	status_text.style.color = "red"
+			// }
+
 		});
 
 		// document.getElementById('file-input').addEventListener('change', (e) => {
@@ -149,13 +174,14 @@
 					let statusLbl = document.getElementById('download-status');
 					let expireLbl = document.getElementById('expire-time');
 					if ("error" in payload){
-						statusLbl.innerHTML = "Download Failed";
+						console.log(payload)
+						statusLbl.innerHTML = payload['error'];
 						statusLbl.style.color = "red";
 					} else {
 						invDataTable.clear();
 						invDataTable.rows.add(payload['data']);
 						invDataTable.draw();
-						statusLbl.innerHTML = "Download Successful";
+						statusLbl.innerHTML = "Success!";
 						statusLbl.style.color = "green";
 						expireLbl.innerHTML = payload['expires'];
 					}
@@ -165,10 +191,16 @@
 
 		$('#submit-request').click(function(e){
 			e.preventDefault();
-			const name = document.getElementById('uname').value;
-			const passkey = document.getElementById('passkey').value;
+			let name = document.getElementById('down-name').value;
+			let passkey = document.getElementById('passkey').value;
+			let download_status = document.getElementById('download-status')
 			if (!isEmpty(name) && !isEmpty(passkey)) {
+				download_status.innerHTML = "Requesting inventory...";
+				download_status.style.color = "blue";
 				requestExisting(name, passkey);
+			} else {
+				download_status.innerHTML = "Name and Passkey required!";
+				download_status.style.color = "red";
 			}
 		});
 
@@ -188,7 +220,7 @@
 		});
 
 		$(function() {
-			$('#uname').on('keypress', function(e) {
+			$('#down-name').on('keypress', function(e) {
 				if (e.which == 32){
 					// console.log('Space Detected');
 					return false;
@@ -213,7 +245,7 @@
 		for(var i=0; i < elements.length; i++) {
 			let buttonId = elements[i].id.toString();
 			let name = buttonId.substring(0, buttonId.length - 3)
-			elements[i].addEventListener('click', function (){strSearch(name, filterJobDict, jobStrCol, this)});
+			elements[i].addEventListener('click', function (){strSearch(name, filterJobDict, jobStrCol, bJobInclusive, this)});
 		}
 		$("#selJob").on('click', function (){ toggleBtns('all', filterJobDict, jobStrCol, 'job-btn'); });
 		$("#deselJob").on('click', function (){ toggleBtns('none', filterJobDict, jobStrCol, 'job-btn'); });
@@ -256,7 +288,7 @@
 		for(var i=0; i < elements.length; i++) {
 			let buttonId = elements[i].id.toString();
 			let name = buttonId.substring(0, buttonId.length - 3)
-			elements[i].addEventListener('click', function (){strSearch(name, filterBagDict, bagStrCol, this)});
+			elements[i].addEventListener('click', function (){strSearch(name, filterBagDict, bagStrCol, null, this)});
 		}
 		$("#selBags").on('click', function (){ toggleBtns('all', filterBagDict, bagStrCol, 'inv-btn'); });
 		$("#deselBags").on('click', function (){ toggleBtns('none', filterBagDict, bagStrCol, 'inv-btn'); });
@@ -299,7 +331,7 @@
 
 
 	// --- Filtering methods ---
-		function inclString(dict, column){
+		function inclString(dict, column, inclusiveUsed){
 			// OR the name strings together
 			let tempArray = Array();
 			let ord = 0;
@@ -312,7 +344,11 @@
 							tempArray.push(key);
 						}
 					}else{
-						tempArray.push(key);
+						if (inclusiveUsed){
+							tempArray.push(key);
+						} else {
+							tempArray.push('^' + key + '$');
+						}
 					}
 					ord += 1
 				}
@@ -347,7 +383,7 @@
 			// Handle toggle depending on In/Ex state
 			if($('#checkJobExBox').is(':checked')){
 				bJobInclusive = true;
-				inclString(filterJobDict, jobStrCol);
+				inclString(filterJobDict, jobStrCol, true);
 			}else {
 				bJobInclusive = false; 
 				exRegex(filterJobDict, jobStrCol)
@@ -411,15 +447,19 @@
 		}
 
 
-		function strSearch(name, dict, column, caller){
+		function strSearch(name, dict, column, inclusive, caller){
 			// Update state in Dict
 			updateStrDict(name, dict, caller);
 
 			// Build and apply Search field
-			if(bJobInclusive){
-				inclString(dict, column);
+			if (inclusive !== null){
+				if(inclusive){
+					inclString(dict, column, true);
+				} else {
+					exRegex(dict, column)
+				}
 			} else {
-				exRegex(dict, column)
+				inclString(dict, column, false)
 			}
 		}
 
@@ -485,10 +525,10 @@
 
 	{% block content %}
 		<div class="container">
-			<label for="uname">Name:</label>
-			<input type="text" id="uname" name="uname" maxlength="32">
-			<label for="passkey">Passkey:</label>
-			<input type="text" id="passkey" name="passkey" maxlength="8">
+			<label for="down-name">Get inventory for:</label>
+			<input type="text" id="down-name" name="down-name" maxlength="32" placeholder="Name (required)">
+			<label for="passkey"> </label>
+			<input type="text" id="passkey" name="passkey" maxlength="8" placeholder="Passkey (required)">
 			<input type="submit" id="submit-request" value="Download">
 			<label id="download-status"></label>
 			<h4 class="text-center">Inventory Table </h4>
@@ -555,14 +595,14 @@
 							<ul class="flex-column nav pl-4">
 								<li class="nav-item">
 									<li>
-									<input type="file" id="file-input" />
-									<label for="up-name">Name:</label><br>
-									<input type="text" id="up-name" name="up-name" size="18" style="font-size:10pt;" maxlength="32"/>
-									<label for="up-passkey">Passkey (optional):</label><br>
-									<input type="text" id="up-passkey" name="up-passkey" size="10" style="font-size:10pt;" maxlength="8"/><br>
+									<input type="file" id="file-input" accept=".lua"/>
+									<!-- <label for="up-name">Name:</label><br> -->
+									<input type="text" id="up-name" name="up-name" size="18" style="font-size:10pt;" maxlength="32" placeholder="Name (required)"/>
+									<!-- <label for="up-passkey">Passkey (optional):</label><br> -->
+									<input type="text" id="up-passkey" name="up-passkey" size="18" style="font-size:10pt;" maxlength="8" placeholder="Passkey (optional)"/><br>
 									</li>
 									<li>
-									<input type="submit" id="submit-upload" value="Upload" style="padding-top:4px;"/><br>
+									<input type="submit" id="submit-upload" value="Upload" /><br>
 									<label id="upload-status"></label>
 									</li>
 								</li>
