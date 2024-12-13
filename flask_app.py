@@ -143,10 +143,13 @@ def request_existing(urlName = None, urlPasskey=None):
 		passkey = urlPasskey
 	app.logger.debug(f'requesting [{name}, {passkey}]')
 	error, ldTable = selectInventoryTableWithPasskey(name, passkey)
+	if error:
+		return {'error': f'No inventory found for {name} and {passkey}'}
+	app.logger.warning(ldTable)
 	# app.logger.warning(type(ldTable))
 	if "json_data" not in ldTable[0]:
 		app.logger.warning(f'No values returned for [name={name}, passkey={passkey}]')
-		return {'error': f'No values returned for [name={name}, passkey={passkey}]'}
+		return {'error': f'No inventory found for {name} and {passkey}'}
 	elif error:
 		return {'error': 'See Error Log'}
 
@@ -351,6 +354,7 @@ def selectInventoryTableWithPasskey(name, passkey):
 		# app.logger.debug(ret)
 		if not cur.rowcount:
 			ret = {'name':'error', 'passkey':'error'}
+			error = True
 
 		conn.commit()
 	except mysql.connector.Error as E:
