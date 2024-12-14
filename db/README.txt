@@ -8,7 +8,7 @@ Run: python load_ffxiah.py -f {XML file}
 
 To export from the local MySql:
 Navigate to C:\Program Files\MySQL\MySQL Server 8.0\bin\
-Run: .\mysqldump.exe -u root -p {db name} {table name} > D:/ffxi_inventory/db/ffxiah.sql
+Run: .\mysqldump.exe -u root -p {db name} {table name} --result-file=D:/ffxi_inventory/db/ffxiah.sql
 
 To import:
 upload the output sql file from above to the remote server.
