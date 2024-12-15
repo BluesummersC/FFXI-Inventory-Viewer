@@ -38,6 +38,7 @@ require('strings')
 
 local https  = require("ssl.https")
 local http = require("socket.http")
+local config = require('config')
 
 require('files')
 require('texts')
@@ -46,8 +47,9 @@ require('resources')
 -- non-lib json
 json = require('json')
 
+settings = config.load({})
+
 debug = false
-local first_pass = true
 
 local url = "https://bluesummers.pythonanywhere.com"
 local url_endpoint = url.."/upload_file"
@@ -66,6 +68,7 @@ function dump(o)
     end
 end
 
+print(dump(settings))
 -- local co = coroutine.wrap( function(endpoint, body)
 --     local res, code, response_headers, status = https.request(endpoint, body)
 --     return res, code, response_headers, status
@@ -88,6 +91,8 @@ local function sendFindallFile(passkey)
 
     local player_name   = windower.ffxi.get_player().name
     local file = windower.addon_path.."..\\findAll\\data\\"..player_name..".lua"
+
+    -- settings = config.load('data/'..player_name..'.xml')
 
     if windower.file_exists(file) == false then
         print("ERROR: Could not find inventory file for "..player_name". Run FindAll's export option to create it.")
@@ -117,11 +122,20 @@ local function sendFindallFile(passkey)
         return nil
     end
 
+    -- Making it lower because config.lua will when merging and create a new entry.
+    player_tag = player_name:lower()
+
     -- Add some additional info to the table
     local payload = {}
     payload.file_data = fileT
     payload.name = player_name
-    payload.passkey = passkey
+    if settings[player_tag] then
+        print('Using saved Passkey:', settings[player_tag])
+        payload.passkey = settings[player_tag]
+    else
+        print('Creating new Passkey')
+        payload.passkey = ''
+    end
 
     -- Build a json object using json module from
     --    https://github.com/rxi/json.lua/blob/master/json.lua
@@ -171,45 +185,38 @@ local function sendFindallFile(passkey)
     print('Success! Opening URL to '..link)
     windower.open_url(link)
 
+    settings[player_tag] = namepassT.passkey
+    settings:save('all')
+
 end
 
 
 local handle_command = function(...)
-    if first_pass then
-        first_pass = false
-        -- Is this needed?
-        windower.send_command('wait 0.05;armory '..table.concat({...},' '))
-    else
-        local params = L{...}
-        first_pass = true
-        debug = false
-        local passkey = ""
+    local params = L{...}
+    debug = false
+    local passkey = ""
 
-        -- convert command line params (SJIS) to UTF-8
-        params:map(windower.from_shift_jis)
+    -- convert command line params (SJIS) to UTF-8
+    params:map(windower.from_shift_jis)
 
-        for _, param in ipairs(params) do
-            if S{'--debug', '-d'}:contains(param) then
-                debug = true
-                print('(Debug is true)')
-            elseif param:match('%w') then
-                if #param ~= 8 then
-                    print('ERROR: Optional Passkey must be 8 digits long')
-                    return nil
-                end
-                passkey = param
-                print('(Using passkey: '..param..')')
-            else
-                print('else: '..param)
+    for _, param in ipairs(params) do
+        if S{'--debug', '-d'}:contains(param) then
+            debug = true
+            print('(Debug is true)')
+        elseif param:match('%w') then
+            if #param ~= 8 then
+                print('ERROR: Optional Passkey must be 8 digits long')
+                return nil
             end
+            passkey = param
+            print('(Using passkey: '..param..')')
+        else
+            print('else: '..param)
         end
-
-        sendFindallFile(passkey)
     end
+
+    sendFindallFile(passkey)
 end
 
 windower.register_event('addon command', handle_command)
--- windower.register_event('addon command', function(...)
---     local params = L{...}
 
--- end)
