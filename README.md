@@ -1,10 +1,12 @@
 # FFXI-Inventory-Viewer  
-This consists of 3 major systems:  
-  Windower with the findAll mod.  
-  A MySQL database loaded with all item information.  
-  A Flask frontend.  
 
-You must have Windower and the plugin called findAll (was Organizer). This plugin will output your inventory into a static file via the Windower command line.
-Load the webpage and upload the .lua file and the site will create an organized list of item_ids, query the database for all info related to each item_id, and serve it up in a jquery datatable!
+This poroject has 3 major components:
+  FFXI Windower with the findAll mod (required) and the armory mod (optional, but highly suggested).  
+  A MySQL database loaded with the master list of item information. Sourced from ffxiah.com/dev  
+  A Flask frontend with a WSGI server.
 
-If findall has been updated or removed, this won't work until a new solution is made.
+Using FindAll, you must export an inventory file, which contains all storage locations with the item ids of the items residing in those locations. Items that are not in a storage get lumped into a "key items" storage, not to be confused with actual 
+Key Items.
+
+The Flask frontend will consume this exported file and crossreference it with the master list to expand the item ids into thhe full item information, then store these into the database tagged with a user-generated Name and a random-generated Passkey. 
+Querying the database with the Name and Passkey will serve the entry to the Datatable on teh website, which then allows many options for searching, filtering and sorting.
