@@ -1,6 +1,6 @@
 # FFXI-Inventory-Viewer  
 
-This poroject has 3 major components:  
+This project has 3 major components:  
   FFXI Windower with the findAll mod (required) and the armory mod (optional, but highly suggested).  
   A MySQL database loaded with the master list of item information. Sourced from ffxiah.com/dev  
   A Flask frontend with a WSGI server.  
